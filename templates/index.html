@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Brain Tumor Detection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <h1>🧠 Brain Tumor Detection</h1>
+  <div class="card">
+    <form id="uploadForm">
+      <label class="custom-file-upload">
+        <input type="file" id="imageUpload" name="file" accept="image/*" required />
+        📷 Upload MRI Image
+      </label>
+      <br />
+      <img id="preview" src="#" alt="Image Preview" />
+      <br />
+      <button type="submit">🔍 Predict</button>
+    </form>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const imageUpload = document.getElementById("imageUpload");
+    const preview = document.getElementById("preview");
+    const form = document.getElementById("uploadForm");
+    const result = document.getElementById("result");
+
+    imageUpload.onchange = function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+      }
+    };
+
+    form.onsubmit = async function (event) {
+      event.preventDefault();
+      const file = imageUpload.files[0];
+      if (!file) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      result.innerHTML = "⏳ Processing...";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          result.innerHTML = `❌ Error: ${data.error}`;
+        } else {
+          result.innerHTML = `✅ <b>Prediction:</b> ${data.class.toUpperCase()}<br>🎯 <b>Confidence:</b> ${data.confidence.toFixed(2)}%`;
+        }
+      } catch (error) {
+        result.innerHTML = "⚠️ Error sending request.";
+        console.error(error);
+      }
+    };
+  </script>
+</body>
+</html>
