@@ -1,3 +1,4 @@
+import gdown
 from flask import Flask, request, jsonify, render_template, send_from_directory
 import os
 import numpy as np
@@ -32,11 +33,20 @@ def download_from_gdrive(file_id, dest_path):
     print("Model downloaded!")
 
 # ✅ Real FILE ID from your Google Drive link
+
 FILE_ID = "1QtR7oLr2X2sveFHlldCDWbQMmfnYBy2H"
 MODEL_PATH = os.path.join("model", "model2brainTumor.h5")
 
 if not os.path.exists(MODEL_PATH):
-    download_from_gdrive(FILE_ID, MODEL_PATH)
+    print("Downloading model from Google Drive using gdown...")
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    gdown.download(url, MODEL_PATH, fuzzy=True, quiet=False)
+    print("Download complete.")
+    
+if os.path.getsize(MODEL_PATH) < 1024 * 100:
+    raise ValueError("Downloaded model file seems too small. Likely not a valid model.")
+
 
 # Flask app setup
 app = Flask(__name__)
